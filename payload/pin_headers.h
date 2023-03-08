@@ -4,7 +4,7 @@
 //Solar Radiation Research Laboratory
 
 /*
- *	PINASSIGNMENTS
+ *	PIN HEADER ASSIGNMENTS
  */
 
 /*	--Radio(APC220)

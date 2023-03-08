@@ -3,8 +3,11 @@
 //National Renewable Energy Laboratory
 //Solar Radiation Research Laboratory
 
+/*
+ *	PIN ASSIGNMENTS
+ */
+ 
 #include "pin_headers.h"
-
 
 /*	--Radio (APC220)
  *		RX			JAPC-RX			D49
@@ -61,9 +64,9 @@ const int IR_SCL = JAUX_SCL;
  *		VIDEO		JADC-PIN1		A12
  */
 
-const int SPECT1_CLK   = JAUX_PIN11;
-const int SPECT1_ST    = JAUX_PIN9;
-const int SPECT1_GAIN  = JAUX_PIN3;
+const int SPECT1_CLK = JAUX_PIN11;
+const int SPECT1_ST = JAUX_PIN9;
+const int SPECT1_GAIN = JAUX_PIN3;
 const int SPECT1_VIDEO = JAUX_PIN1;
 
 /*	--Spectroradiometer 2
@@ -73,7 +76,7 @@ const int SPECT1_VIDEO = JAUX_PIN1;
  *		VIDEO		JADC-PIN2		A13
  */
 
-const int SPECT2_CLK   = JAUX_PIN10;
-const int SPECT2_ST    = JAUX_PIN9;
-const int SPECT2_GAIN  = JAUX_PIN3;
+const int SPECT2_CLK = JAUX_PIN10;
+const int SPECT2_ST = JAUX_PIN9;
+const int SPECT2_GAIN = JAUX_PIN3;
 const int SPECT2_VIDEO = JAUX_PIN1;
