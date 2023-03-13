@@ -6,7 +6,7 @@
 /*
  *	PIN ASSIGNMENTS
  */
- 
+
 #include "pin_headers.h"
 
 /*	--Radio (APC220)

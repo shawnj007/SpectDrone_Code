@@ -1,4 +1,3 @@
-
 //SpectDrone Payload
 //Developer: Shawn L. Jaker
 //National Renewable Energy Laboratory
@@ -13,7 +12,7 @@ SoftwareSerial* radio = NULL;
 SoftwareSerial* camera_ss = NULL;
 Adafruit_VC0706* camera = NULL;
 static const long CAMERA_BAUD = 115200;
-static const long IMAGE_SIZE = long (640 * 480);
+static const long IMAGE_SIZE = long(640 * 480);
 
 #include <TinyGPS++.h>
 SoftwareSerial* gps_ss = NULL;
@@ -75,14 +74,14 @@ int setup_radio(int rx, int tx) {
 int setup_gps(int rx, int tx) {
 	// Setup Global Positioning System pins
 	// Returns 0 on sucess, 1 on failure.
-	
+
 	gps_ss = new SoftwareSerial(rx, tx);
 	if (gps_ss == NULL) return 1;
 	else gps_ss->begin(GPS_BAUD);
-	
+
 	gps = new TinyGPSPlus();
 	if (gps == NULL) return 1;
-	
+
 	return 0;
 }
 
@@ -187,7 +186,7 @@ Telemetry* read_camera() {
 	Telemetry* t = new Telemetry;
 	t->device = CAMERA;
 	t->output = (char)malloc(IMAGE_SIZE * sizeof(uint8_t));
-	
+
 	// FIXME
 	return t;
 }

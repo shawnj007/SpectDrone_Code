@@ -29,7 +29,7 @@ const int JGPS_TX = 19;
  */
 
 const int JAUX_SS_AUX = 22;
-const int JAUX_XCL    = 16;
+const int JAUX_XCL = 16;
 
 /*	I2C components
  *
@@ -64,7 +64,7 @@ const int JAUX_PIN3 = 38;
  */
 
 const int JAUX_PIN11 = 13;
-const int JAUX_PIN1  = A12;
+const int JAUX_PIN1 = A12;
 
 /*	--Spectroradiometer 2
  *		CLK1		JAUX-PIN10		D12
@@ -72,4 +72,4 @@ const int JAUX_PIN1  = A12;
  */
 
 const int JAUX_PIN10 = 12;
-const int JAUX_PIN2  = A13;
+const int JAUX_PIN2 = A13;
