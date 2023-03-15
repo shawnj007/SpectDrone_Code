@@ -28,14 +28,14 @@ Spectrometer::Spectrometer(int clock, int st, int gain, int video) {
 	clear();
 }
 
-Spectrometer::clear() {
+void Spectrometer::clear() {
 	digitalWrite(_video, LOW);
 	for (int i = 0; i < SPEC_CHANNELS; i++) {
 		data[i] = 0;
 	}
 }
 
-Spectrometer::readSpectrometer() {
+void Spectrometer::readSpectrometer() {
 	//int delay_time = 35;      // delay per half clock (in microseconds).  This ultimately conrols the integration time.
 	int delay_time = 1;	 // delay per half clock (in microseconds).  This ultimately conrols the integration time.
 	int read_time = 35;	 // Amount of time that the analogRead() procedure takes (in microseconds) (different micros will have different times)

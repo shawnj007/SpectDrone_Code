@@ -23,7 +23,7 @@ class Spectrometer {
 	uint16_t data[SPEC_CHANNELS] = { 0 };
 
 	Spectrometer(int clock, int st, int gain, int video);
-	clear();
-	readSpectrometer();
+	void clear();
+	void readSpectrometer();
 };
 #endif

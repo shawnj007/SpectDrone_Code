@@ -3,6 +3,8 @@
 //National Renewable Energy Laboratory
 //Solar Radiation Research Laboratory
 
+#define PAYLOAD_SERIAL (0)
+
 #include "pin_assignments.h"
 
 #include <SoftwareSerial.h>
@@ -45,19 +47,19 @@ enum device_type { ALL,
 				   SPEC };
 
 typedef struct command_struct {
-	command_type command;
-	device_type device;
+	command_type command = NULL;
+	device_type device = NULL;
 	char param[8] = { 0 };
-	command_struct* next;
+	command_struct* next = NULL;
 } Command;
 
 Command* root_command = NULL;
 
 typedef struct telemetry_struct {
-	device_type device;
+	device_type device = NULL;
 	char param[8] = { 0 };
 	void* output = NULL;
-	telemetry_struct* next;
+	telemetry_struct* next = NULL;
 } Telemetry;
 
 Telemetry* root_telemetry = NULL;
@@ -65,7 +67,8 @@ Telemetry* leaf_telemetry = NULL;
 
 int setup_radio(int rx, int tx) {
 	// Setup Radio pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
+
 	radio = new SoftwareSerial(rx, tx);
 	if (radio == NULL) return 1;
 	else return 0;
@@ -73,7 +76,7 @@ int setup_radio(int rx, int tx) {
 
 int setup_gps(int rx, int tx) {
 	// Setup Global Positioning System pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
 
 	gps_ss = new SoftwareSerial(rx, tx);
 	if (gps_ss == NULL) return 1;
@@ -87,7 +90,7 @@ int setup_gps(int rx, int tx) {
 
 int setup_camera(int rx, int tx) {
 	// Setup Camera pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
 
 	camera_ss = new SoftwareSerial(rx, tx);
 	if (camera_ss == NULL) return 1;
@@ -102,7 +105,8 @@ int setup_camera(int rx, int tx) {
 
 int setup_imu(int sda, int scl) {
 	// Setup Orientation Sensor pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
+
 	orien = new Adafruit_BNO055(55);
 	if (orien == NULL || !orien->begin()) return 1;
 	else return 0;
@@ -110,16 +114,17 @@ int setup_imu(int sda, int scl) {
 
 int setup_thp(int sda, int scl) {
 	// Setup Temperature, Humidity, Pressure Sensor pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
+
 	thp = new Adafruit_BME280();
 	if (thp == NULL || !thp->begin()) return 1;
 	else return 0;
-	return 1;
 }
 
 int setup_infrared(int sda, int scl) {
 	// Setup Infrared Thermal Sensor pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
+
 	ir = new Adafruit_MLX90614();
 	if (ir == NULL || !ir->begin()) return 1;
 	return 0;
@@ -127,14 +132,15 @@ int setup_infrared(int sda, int scl) {
 
 int setup_spect(Spectrometer* spec, int clock, int st, int gain, int video) {
 	// Setup Spectroradiometer pins
-	// Returns 0 on sucess, 1 on failure.
+	// Returns 0 on success, 1 on failure.
+
 	spec = new Spectrometer(clock, st, gain, video);
 	if (spec == NULL) return 1;
 	return 0;
 }
 
 void fail_on(const __FlashStringHelper* failed) {
-	if (SERIAL) {
+	if (PAYLOAD_SERIAL) {
 		Serial.print(F("Failed on "));
 		Serial.print(failed);
 	}
@@ -142,6 +148,7 @@ void fail_on(const __FlashStringHelper* failed) {
 }
 
 void setup() {
+	if (PAYLOAD_SERIAL) Serial.begin(9600);
 	if (setup_radio(RADIO_RX, RADIO_TX) != 0) fail_on(F("RADIO"));
 	if (setup_gps(GPS_RX, GPS_TX) != 0) fail_on(F("GPS"));
 	if (setup_camera(CAM_RX, CAM_TX) != 0) fail_on(F("CAMERA"));
@@ -170,13 +177,13 @@ Telemetry* read_gps() {
 	Telemetry* t = new Telemetry;
 	t->device = GPS;
 	if (gps->location.isValid()) {
-		t->output = (char)malloc(53 * sizeof(char));
+		t->output = (char*)malloc(53 * sizeof(char));
 		// "-lat.lattt -lon.lonnn elev.meter yyyy mm dd hh mm ss"
 		// FIXME
 
 	} else {
-		t->output = (char)malloc(8 * sizeof(char));
-		strcpy(t->output, "INVALID");
+		t->output = (char*)malloc(8 * sizeof(char));
+		strcpy((char*)t->output, "INVALID");
 	}
 	return t;
 }
@@ -185,7 +192,8 @@ Telemetry* read_camera() {
 	// Read Camera image
 	Telemetry* t = new Telemetry;
 	t->device = CAMERA;
-	t->output = (char)malloc(IMAGE_SIZE * sizeof(uint8_t));
+	//t->output = (char)malloc(IMAGE_SIZE * sizeof(uint8_t));
+
 
 	// FIXME
 	return t;
@@ -223,52 +231,60 @@ Telemetry* get(device_type d, char* param) {
 	Telemetry* t = NULL;
 	switch (d) {
 		case ALL:  // Ignore param field
-			Telemetry* t_gps = get(GPS, NULL);
-			Telemetry* t_cam = get(CAMERA, NULL);
-			Telemetry* t_imu = get(IMU, NULL);
-			Telemetry* t_irt = get(IR, NULL);
-			Telemetry* t_thp = get(THP, NULL);
-			Telemetry* t_sp1 = get(SPEC, "1");
-			Telemetry* t_sp2 = get(SPEC, "2");
-			t_gps->next = t_cam;
-			t_cam->next = t_imu;
-			t_imu->next = t_irt;
-			t_irt->next = t_thp;
-			t_thp->next = t_sp1;
-			t_sp1->next = t_sp2;
-			t_sp2->next = NULL;
-			root_telemetry = t_gps;
-			leaf_telemetry = t_sp2;
-			return root_telemetry;
-			break;
+			{
+				Telemetry* t_gps = get(GPS, NULL);
+				Telemetry* t_cam = get(CAMERA, NULL);
+				Telemetry* t_imu = get(IMU, NULL);
+				Telemetry* t_irt = get(IR, NULL);
+				Telemetry* t_thp = get(THP, NULL);
+				char param[2] = { 0 };
+				strcpy(param, "1");
+				Telemetry* t_sp1 = get(SPEC, param);
+				strcpy(param, "2");
+				Telemetry* t_sp2 = get(SPEC, param);
+				t_gps->next = t_cam;
+				t_cam->next = t_imu;
+				t_imu->next = t_irt;
+				t_irt->next = t_thp;
+				t_thp->next = t_sp1;
+				t_sp1->next = t_sp2;
+				t_sp2->next = NULL;
+				root_telemetry = t_gps;
+				leaf_telemetry = t_sp2;
+				return root_telemetry;
+				break;
+			}
 		case GPS:
-			t = read_gps();
-			break;
+			{
+				t = read_gps();
+				break;
+			}
 		case CAMERA:
-			t = read_camera();
-			break;
+			{
+				t = read_camera();
+				break;
+			}
 		case IMU:
-			t = read_imu();
-			break;
+			{
+				t = read_imu();
+				break;
+			}
 		case IR:
-			t = read_ir();
-			break;
+			{
+				t = read_ir();
+				break;
+			}
 		case THP:
-			t = read_thp();
-			break;
+			{
+				t = read_thp();
+				break;
+			}
 		case SPEC:
-			t = read_spec(param);
-			break;
+			{
+				t = read_spec(param);
+				break;
+			}
 	}
-
-	if (root_telemetry == NULL) {
-		root_telemetry = t;
-		leaf_telemetry = root_telemetry;
-	} else {
-		leaf_telemetry->next = t;
-		leaf_telemetry = leaf_telemetry->next;
-	}
-
 	return t;
 }
 
@@ -280,20 +296,33 @@ void exec_commands(Command* command) {
 
 		switch (c->command) {
 			case GET:
-				Telemetry* t = get(c->device, c->param);
-				break;
+				{
+					Telemetry* t = get(c->device, c->param);
+					if (root_telemetry == NULL) {
+						root_telemetry = t;
+						leaf_telemetry = root_telemetry;
+					} else {
+						leaf_telemetry->next = t;
+						leaf_telemetry = leaf_telemetry->next;
+					}
+					break;
+				}
 			case SET:
-				//set(c->device, c->param);
-				break;
+				{
+					//set(c->device, c->param);
+					break;
+				}
 			case RECORD:
-				//record(c->device, c->param);
-				break;
+				{
+					//record(c->device, c->param);
+					break;
+				}
 		}
-
-		Command* next = c->next;
-		delete c;
-		c = next;
 	}
+
+	Command* next = c->next;
+	delete c;
+	c = next;
 }
 
 Telemetry* read_telemetry() {
