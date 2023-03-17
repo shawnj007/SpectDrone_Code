@@ -16,20 +16,28 @@ const int JAPC_RX = 49;
 const int JAPC_TX = 48;
 
 /*	--GPS
+ *		TX			JGPS-GPS_TX		D16
  *		RX			JGPS-GPS_RX		D17
- *		TX			JGPS-GPS_TX		D19
  */
 
-const int JGPS_RX = 17;
-const int JGPS_TX = 19;
+//const int JGPS_TX = 16;
+//const int JGPS_RX = 17;
 
-/*	--Camera
- *		RX			JAUX-SS_AUX		D22
- *		TX			JAUX-XCL		D16
+/*	--Camera 1
+ *		RX			JAUX-TX1		D18
+ *		TX			JAUX-RX1		D19
  */
 
-const int JAUX_SS_AUX = 22;
-const int JAUX_XCL = 16;
+//const int JAUX_TX1 = 18;
+//const int JAUX_RX1 = 19;
+
+/*	--Camera 2
+ *		RX			JAUX-TX3		D14
+ *		TX			JAUX-RX3		D15
+ */
+
+//const int JAUX_TX2 = 14;
+//const int JAUX_RX2 = 15;
 
 /*	I2C components
  *

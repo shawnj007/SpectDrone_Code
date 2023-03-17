@@ -11,13 +11,14 @@
 SoftwareSerial* radio = NULL;
 
 #include <Adafruit_VC0706.h>
-SoftwareSerial* camera_ss = NULL;
+HardwareSerial* camera1_hs = NULL; //Serial1;	// SKY camera
+HardwareSerial* camera2_hs = NULL; //Serial3;	// GROUND camera
 Adafruit_VC0706* camera = NULL;
 static const long CAMERA_BAUD = 115200;
 static const long IMAGE_SIZE = long(640 * 480);
 
 #include <TinyGPS++.h>
-SoftwareSerial* gps_ss = NULL;
+HardwareSerial* gps_hs = NULL;	// Serial2
 TinyGPSPlus* gps = NULL;
 static const long GPS_BAUD = 4800;
 
@@ -74,13 +75,13 @@ int setup_radio(int rx, int tx) {
 	else return 0;
 }
 
-int setup_gps(int rx, int tx) {
+int setup_gps(HardwareSerial *gps_hs, HardwareSerial hs) {
 	// Setup Global Positioning System pins
 	// Returns 0 on success, 1 on failure.
 
-	gps_ss = new SoftwareSerial(rx, tx);
-	if (gps_ss == NULL) return 1;
-	else gps_ss->begin(GPS_BAUD);
+	gps_hs = &hs;
+	if (gps_hs == NULL) return 1;
+	else gps_hs->begin(GPS_BAUD);
 
 	gps = new TinyGPSPlus();
 	if (gps == NULL) return 1;
@@ -88,17 +89,13 @@ int setup_gps(int rx, int tx) {
 	return 0;
 }
 
-int setup_camera(int rx, int tx) {
+int setup_camera(HardwareSerial *cam_hs, HardwareSerial hs) {
 	// Setup Camera pins
 	// Returns 0 on success, 1 on failure.
 
-	camera_ss = new SoftwareSerial(rx, tx);
-	if (camera_ss == NULL) return 1;
-	else camera_ss->begin(CAMERA_BAUD);
-
-	camera = new Adafruit_VC0706(camera_ss);
-	if (camera == NULL) return 1;
-	else camera->begin(CAMERA_BAUD);
+	cam_hs = &hs;
+	if (cam_hs == NULL) return 1;
+	else cam_hs->begin(CAMERA_BAUD);
 
 	return 0;
 }
@@ -150,9 +147,10 @@ void fail_on(const __FlashStringHelper* failed) {
 void setup() {
 	if (PAYLOAD_SERIAL) Serial.begin(9600);
 	if (setup_radio(RADIO_RX, RADIO_TX) != 0) fail_on(F("RADIO"));
-	if (setup_gps(GPS_RX, GPS_TX) != 0) fail_on(F("GPS"));
-	if (setup_camera(CAM_RX, CAM_TX) != 0) fail_on(F("CAMERA"));
-	if (setup_imu(IMU_SDA, IMU_SCL) != 0) fail_on(F("ORIENTATION"));
+	if (setup_gps(gps_hs, Serial2) != 0) fail_on(F("GPS"));
+	if (setup_camera(camera1_hs, Serial1) != 0) fail_on(F("SKY CAMERA"));
+	if (setup_camera(camera2_hs, Serial3) != 0) fail_on(F("GROUND CAMERA"));
+	if (setup_imu(IMU_SDA, IMU_SCL) != 0) fail_on(F("ORIENTATION SENSOR"));
 	if (setup_thp(THP_SDA, THP_SCL) != 0) fail_on(F("TEMPERATURE, HUMIDITY, PRESSURE SENSOR"));
 	if (setup_infrared(IR_SDA, IR_SCL) != 0) fail_on(F("INFRARED"));
 	if (setup_spect(spec1, SPECT1_CLK, SPECT1_ST, SPECT1_GAIN, SPECT1_VIDEO) != 0) fail_on(F("SPECTORADIOMETER 1"));

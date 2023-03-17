@@ -41,7 +41,6 @@ void Spectrometer::readSpectrometer() {
 	int read_time = 35;	 // Amount of time that the analogRead() procedure takes (in microseconds) (different micros will have different times)
 	int intTime = 100;
 	int accumulateMode = false;
-	int i;
 
 	// Step 1: start leading clock pulses
 	for (int i = 0; i < SPEC_CHANNELS; i++) {

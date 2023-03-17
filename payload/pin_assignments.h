@@ -18,20 +18,28 @@ const int RADIO_RX = JAPC_RX;
 const int RADIO_TX = JAPC_TX;
 
 /*	--GPS
- *		RX			JGPS-GPS_RX		D17
- *		TX			JGPS-GPS_TX		D19
+ *		RX			JGPS-GPS_RX		D16
+ *		TX			JGPS-GPS_TX		D17
  */
 
-const int GPS_RX = JGPS_RX;
-const int GPS_TX = JGPS_TX;
+//const int GPS_RX = JGPS_TX2;
+//const int GPS_TX = JGPS_RX2;
 
-/*	--Camera
- *		RX			JAUX-SS_AUX		D22
- *		TX			JAUX-XCL		D16
+/*	--Camera 1
+ *		RX			JAUX-TX1		D14
+ *		TX			JAUX-RX1		D15
  */
 
-const int CAM_RX = JAUX_SS_AUX;
-const int CAM_TX = JAUX_XCL;
+//const int CAM1_RX = JAUX_TX1;
+//const int CAM1_TX = JAUX_RX1;
+
+/*	--Camera 2
+ *		RX			JAUX-TX2		D18
+ *		TX			JAUX-RX2		D19
+ */
+
+//const int CAM2_RX = JAUX_TX2;
+//const int CAM2_TX = JAUX_RX2;
 
 /*	--Orientation (Inertial Movement Unit)
  *		SDA			JAUX-SDA		D20
