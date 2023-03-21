@@ -13,7 +13,8 @@ SoftwareSerial* radio = NULL;
 #include <Adafruit_VC0706.h>
 HardwareSerial* camera1_hs = NULL; //Serial1;	// SKY camera
 HardwareSerial* camera2_hs = NULL; //Serial3;	// GROUND camera
-Adafruit_VC0706* camera = NULL;
+Adafruit_VC0706* camera1 = NULL;
+Adafruit_VC0706* camera2 = NULL;
 static const long CAMERA_BAUD = 115200;
 static const long IMAGE_SIZE = long(640 * 480);
 
@@ -75,28 +76,35 @@ int setup_radio(int rx, int tx) {
 	else return 0;
 }
 
-int setup_gps(HardwareSerial *gps_hs, HardwareSerial hs) {
+int setup_gps(TinyGPSPlus* gps_arg, HardwareSerial *gps_hs_arg, HardwareSerial hs_arg) {
 	// Setup Global Positioning System pins
 	// Returns 0 on success, 1 on failure.
 
-	gps_hs = &hs;
-	if (gps_hs == NULL) return 1;
-	else gps_hs->begin(GPS_BAUD);
+	gps_hs_arg = &hs_arg;
+	if (gps_hs_arg == NULL) return 1;
+	else gps_hs_arg->begin(GPS_BAUD);
 
-	gps = new TinyGPSPlus();
-	if (gps == NULL) return 1;
+	gps_arg = new TinyGPSPlus();
+	if (gps_arg == NULL) return 1;
 
 	return 0;
 }
 
-int setup_camera(HardwareSerial *cam_hs, HardwareSerial hs) {
+int setup_camera(Adafruit_VC0706 *cam_arg, HardwareSerial *cam_hs_arg, HardwareSerial hs_arg) {
 	// Setup Camera pins
 	// Returns 0 on success, 1 on failure.
 
-	cam_hs = &hs;
-	if (cam_hs == NULL) return 1;
-	else cam_hs->begin(CAMERA_BAUD);
+	cam_hs_arg = &hs_arg;
+	if (cam_hs_arg == NULL) return 1;
+	else cam_hs_arg->begin(CAMERA_BAUD);
 
+	cam_arg = new Adafruit_VC0706(cam_hs_arg);
+	if (cam_arg== NULL) return 1;
+	else cam_arg->begin(CAMERA_BAUD);
+
+	cam_arg->setImageSize(VC0706_640x480);
+	if (cam_arg->getImageSize() != VC0706_640x480) return 1;
+	
 	return 0;
 }
 
@@ -147,14 +155,16 @@ void fail_on(const __FlashStringHelper* failed) {
 void setup() {
 	if (PAYLOAD_SERIAL) Serial.begin(9600);
 	if (setup_radio(RADIO_RX, RADIO_TX) != 0) fail_on(F("RADIO"));
-	if (setup_gps(gps_hs, Serial2) != 0) fail_on(F("GPS"));
-	if (setup_camera(camera1_hs, Serial1) != 0) fail_on(F("SKY CAMERA"));
-	if (setup_camera(camera2_hs, Serial3) != 0) fail_on(F("GROUND CAMERA"));
+	if (setup_gps(gps, gps_hs, Serial2) != 0) fail_on(F("GPS"));
+	if (setup_camera(camera1, camera1_hs, Serial1) != 0) fail_on(F("SKY CAMERA"));
+	if (setup_camera(camera2, camera2_hs, Serial3) != 0) fail_on(F("GROUND CAMERA"));
 	if (setup_imu(IMU_SDA, IMU_SCL) != 0) fail_on(F("ORIENTATION SENSOR"));
 	if (setup_thp(THP_SDA, THP_SCL) != 0) fail_on(F("TEMPERATURE, HUMIDITY, PRESSURE SENSOR"));
 	if (setup_infrared(IR_SDA, IR_SCL) != 0) fail_on(F("INFRARED"));
 	if (setup_spect(spec1, SPECT1_CLK, SPECT1_ST, SPECT1_GAIN, SPECT1_VIDEO) != 0) fail_on(F("SPECTORADIOMETER 1"));
 	if (setup_spect(spec2, SPECT2_CLK, SPECT2_ST, SPECT2_GAIN, SPECT2_VIDEO) != 0) fail_on(F("SPECTORADIOMETER 2"));
+	//setup spectroradiometer thermal sensers (digital)
+	//setup longwave sensors (analog)
 }
 
 Command* read_commands() {
@@ -176,7 +186,7 @@ Telemetry* read_gps() {
 	t->device = GPS;
 	if (gps->location.isValid()) {
 		t->output = (char*)malloc(53 * sizeof(char));
-		// "-lat.lattt -lon.lonnn elev.meter yyyy mm dd hh mm ss"
+		// "yyyy mm dd hh mm ss -lat.lattt -lon.lonnn elev.meter"
 		// FIXME
 
 	} else {
@@ -191,7 +201,6 @@ Telemetry* read_camera() {
 	Telemetry* t = new Telemetry;
 	t->device = CAMERA;
 	//t->output = (char)malloc(IMAGE_SIZE * sizeof(uint8_t));
-
 
 	// FIXME
 	return t;
@@ -230,17 +239,21 @@ Telemetry* get(device_type d, char* param) {
 	switch (d) {
 		case ALL:  // Ignore param field
 			{
+				char param[2] = { 0 };
 				Telemetry* t_gps = get(GPS, NULL);
-				Telemetry* t_cam = get(CAMERA, NULL);
+				strcpy(param, "1");
+				Telemetry* t_cam1 = get(CAMERA, param);
+				strcpy(param, "2");
+				Telemetry* t_cam2 = get(CAMERA, param);
 				Telemetry* t_imu = get(IMU, NULL);
 				Telemetry* t_irt = get(IR, NULL);
 				Telemetry* t_thp = get(THP, NULL);
-				char param[2] = { 0 };
 				strcpy(param, "1");
 				Telemetry* t_sp1 = get(SPEC, param);
 				strcpy(param, "2");
 				Telemetry* t_sp2 = get(SPEC, param);
-				t_gps->next = t_cam;
+				t_gps->next = t_cam1;
+				t_cam1->next = t_cam2;
 				t_cam->next = t_imu;
 				t_imu->next = t_irt;
 				t_irt->next = t_thp;
@@ -259,7 +272,7 @@ Telemetry* get(device_type d, char* param) {
 			}
 		case CAMERA:
 			{
-				t = read_camera();
+				t = read_camera(param);
 				break;
 			}
 		case IMU:
