@@ -7,8 +7,17 @@
  *	PIN ASSIGNMENTS
  */
 
-#include "pin_headers.h"
+#ifdef PAYLOAD_IS_2560EMBED
+ #include "pin_headers_2560embed.h"
+#endif
 
+#ifdef PAYLOAD_IS_TEENSY4_0
+ #include "pin_headers_teensy4_0.h"
+#endif
+
+#ifdef PAYLOAD_IS_TEENSY4_1
+ #include "pin_headers_teensy4_1.h"
+#endif
 /*	--Radio (APC220)
  *		RX			JAPC-RX			D49
  *		TX			JAPC-TX			D48

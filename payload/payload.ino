@@ -3,16 +3,19 @@
 //National Renewable Energy Laboratory
 //Solar Radiation Research Laboratory
 
-#define PAYLOAD_SERIAL (0)
+#define PAYLOAD_IS_2560EMBED
+//#define PAYLOAD_IS_TEENSY4_0
+//#define PAYLOAD_IS_TEENSY4_1
+ #include "pin_assignments.h"
 
-#include "pin_assignments.h"
+#define PAYLOAD_SERIAL (0)
 
 #include <SoftwareSerial.h>
 SoftwareSerial* radio = NULL;
 
 #include <Adafruit_VC0706.h>
-HardwareSerial* camera1_hs = NULL; //Serial1;	// SKY camera
-HardwareSerial* camera2_hs = NULL; //Serial3;	// GROUND camera
+HardwareSerial* camera1_hs = NULL;	//Serial1;	// SKY camera
+HardwareSerial* camera2_hs = NULL;	//Serial3;	// GROUND camera
 Adafruit_VC0706* camera1 = NULL;
 Adafruit_VC0706* camera2 = NULL;
 static const long CAMERA_BAUD = 115200;
@@ -76,7 +79,7 @@ int setup_radio(int rx, int tx) {
 	else return 0;
 }
 
-int setup_gps(TinyGPSPlus* gps_arg, HardwareSerial *gps_hs_arg, HardwareSerial hs_arg) {
+int setup_gps(TinyGPSPlus* gps_arg, HardwareSerial* gps_hs_arg, HardwareSerial hs_arg) {
 	// Setup Global Positioning System pins
 	// Returns 0 on success, 1 on failure.
 
@@ -90,7 +93,7 @@ int setup_gps(TinyGPSPlus* gps_arg, HardwareSerial *gps_hs_arg, HardwareSerial h
 	return 0;
 }
 
-int setup_camera(Adafruit_VC0706 *cam_arg, HardwareSerial *cam_hs_arg, HardwareSerial hs_arg) {
+int setup_camera(Adafruit_VC0706* cam_arg, HardwareSerial* cam_hs_arg, HardwareSerial hs_arg) {
 	// Setup Camera pins
 	// Returns 0 on success, 1 on failure.
 
@@ -99,12 +102,12 @@ int setup_camera(Adafruit_VC0706 *cam_arg, HardwareSerial *cam_hs_arg, HardwareS
 	else cam_hs_arg->begin(CAMERA_BAUD);
 
 	cam_arg = new Adafruit_VC0706(cam_hs_arg);
-	if (cam_arg== NULL) return 1;
+	if (cam_arg == NULL) return 1;
 	else cam_arg->begin(CAMERA_BAUD);
 
 	cam_arg->setImageSize(VC0706_640x480);
 	if (cam_arg->getImageSize() != VC0706_640x480) return 1;
-	
+
 	return 0;
 }
 
@@ -196,7 +199,7 @@ Telemetry* read_gps() {
 	return t;
 }
 
-Telemetry* read_camera() {
+Telemetry* read_camera(char* param) {
 	// Read Camera image
 	Telemetry* t = new Telemetry;
 	t->device = CAMERA;
@@ -254,7 +257,7 @@ Telemetry* get(device_type d, char* param) {
 				Telemetry* t_sp2 = get(SPEC, param);
 				t_gps->next = t_cam1;
 				t_cam1->next = t_cam2;
-				t_cam->next = t_imu;
+				t_cam2->next = t_imu;
 				t_imu->next = t_irt;
 				t_irt->next = t_thp;
 				t_thp->next = t_sp1;
